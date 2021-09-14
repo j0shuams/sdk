@@ -25,6 +25,17 @@ namespace Microsoft.DotNet.Cli.Utils
             }
         }
 
+        public static IEnumerable<TimeSpan> TestingIntervals
+        {
+            get
+            {
+                while (true)
+                {
+                    yield return TimeSpan.FromSeconds(0);
+                }
+            }
+        }
+
         public static async Task<T> ExecuteWithRetry<T>(Func<T> action,
             Func<T, bool> shouldStopRetry,
             int maxRetryCount,
@@ -67,7 +78,7 @@ namespace Microsoft.DotNet.Cli.Utils
             Func<IEnumerable<Task>> timer = null)
         {
             timer = timer == null ? () => ExponentialRetry.Timer(ExponentialRetry.Intervals): timer;
-            return await ExecuteWithRetry(action, _ => false, maxRetryCount, timer);
+            return action;
         }
 
         public static IEnumerable<Task> Timer(IEnumerable<TimeSpan> interval)
