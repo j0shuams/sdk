@@ -36,7 +36,7 @@ namespace Microsoft.DotNet.Cli.Utils
             }
         }
 
-        public static async Task<T> ExecuteWithRetry<T>(Func<T> action,
+        public static async Task<T> ExecuteAsyncWithRetry<T>(Func<Task<T>> action,
             Func<T, bool> shouldStopRetry,
             int maxRetryCount,
             Func<IEnumerable<Task>> timer,
@@ -50,7 +50,7 @@ namespace Microsoft.DotNet.Cli.Utils
                 count++;
                 try
                 {
-                    result = action();
+                    result = await action();
                 }
                 catch
                 {
@@ -72,13 +72,23 @@ namespace Microsoft.DotNet.Cli.Utils
             }
             throw new Exception("Timer should not be exhausted");
         }
-        
+
+        public static async Task<T> ExecuteWithRetry<T>(Func<T> action,
+            Func<T, bool> shouldStopRetry,
+            int maxRetryCount,
+            Func<IEnumerable<Task>> timer,
+            string taskDescription = "")
+        {
+            Func<Task<T>> asyncAction = () => Task.FromResult(action());
+            return await ExecuteAsyncWithRetry(asyncAction, shouldStopRetry, maxRetryCount, timer, taskDescription);
+        }
+
         public static async Task<T> ExecuteWithRetryOnFailure<T>(Func<Task<T>> action,
             int maxRetryCount = 3,
             Func<IEnumerable<Task>> timer = null)
         {
             timer = timer == null ? () => ExponentialRetry.Timer(ExponentialRetry.Intervals): timer;
-            return await action();// ExecuteWithRetry(action, _ => false, maxRetryCount, timer);
+            return await ExecuteAsyncWithRetry(action, _ => false, maxRetryCount, timer);
         }
 
         public static IEnumerable<Task> Timer(IEnumerable<TimeSpan> interval)
