@@ -25,6 +25,17 @@ namespace Microsoft.DotNet.Cli.Utils
             }
         }
 
+        public static IEnumerable<TimeSpan> TestingIntervals
+        {
+            get
+            {
+                while (true)
+                {
+                    yield return TimeSpan.FromSeconds(0);
+                }
+            }
+        }
+
         public static async Task<T> ExecuteWithRetry<T>(Func<T> action,
             Func<T, bool> shouldStopRetry,
             int maxRetryCount,
