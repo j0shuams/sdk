@@ -106,13 +106,13 @@ namespace Microsoft.DotNet.Cli.NuGetPackageDownloader
 
             Directory.CreateDirectory(Path.GetDirectoryName(nupkgPath));
             using FileStream destinationStream = File.Create(nupkgPath);
-            bool success = await resource.CopyNupkgToStreamAsync(
+            bool success = await ExponentialRetry.ExecuteWithRetryOnFailure(async () => await resource.CopyNupkgToStreamAsync(
                 packageId.ToString(),
                 resolvedPackageVersion,
                 destinationStream,
                 _cacheSettings,
                 _verboseLogger,
-                cancellationToken);
+                cancellationToken));
             destinationStream.Close();
 
             if (!success)
